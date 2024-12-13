@@ -63,16 +63,16 @@
 
         const candleSeries = chart.addCandlestickSeries();
 
-        // داده‌های اولیه
-        const fakeData = [
+        // داده‌های اولیه از localStorage (اگر موجود باشد)
+        let fakeData = JSON.parse(localStorage.getItem('chartData')) || [
             { time: '2024-12-01', open: 10, high: 10, low: 10, close: 10 }, // شروع از قیمت 10
         ];
 
         candleSeries.setData(fakeData);
 
-        // زمان چرخه: تغییر به یک ساعت (3600000 میلی‌ثانیه)
-        const cycleDuration = 3600000; // 1 ساعت به میلی‌ثانیه
-        const midpoint = cycleDuration / 2;  // نقطه وسط (30 دقیقه)
+        // زمان چرخه: تغییر به هر 10 دقیقه (600000 میلی‌ثانیه)
+        const cycleDuration = 600000; // 10 دقیقه به میلی‌ثانیه
+        const midpoint = cycleDuration / 2;  // نقطه وسط (5 دقیقه)
         const startPrice = 10;             // قیمت شروع از 10
         const peakPrice = 10;                // قیمت اوج همان 10
         const endPrice = 5;               // قیمت نهایی کاهش به 5
@@ -117,6 +117,9 @@
             fakeData.push(nextPrice);
             candleSeries.update(nextPrice);
             updatePercentage(newPrice);
+
+            // ذخیره داده‌ها در localStorage
+            localStorage.setItem('chartData', JSON.stringify(fakeData));
         }
 
         function updatePercentage(newPrice) {
@@ -128,7 +131,7 @@
         }
 
         // شروع به ریزش اولیه از 10 به 5
-        setInterval(addNextPrice, cycleDuration); // بروزرسانی هر 1 ساعت
+        setInterval(addNextPrice, cycleDuration); // بروزرسانی هر 10 دقیقه
         addNextPrice(); // تغییر قیمت بلافاصله پس از بارگذاری صفحه شروع می‌شود
     </script>
 </body>
