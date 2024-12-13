@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Chart (TEST/USDT)</title>
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #header {
+            height: 50px;
+            background: #f4f4f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        #chart-container {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">Token Chart (TEST/USDT)</div>
+    <div id="chart-container"></div>
+
+    <script>
+        const chartContainer = document.getElementById('chart-container');
+        const chart = LightweightCharts.createChart(chartContainer, {
+            width: chartContainer.offsetWidth,
+            height: chartContainer.offsetHeight,
+            layout: { backgroundColor: '#ffffff', textColor: '#333' },
+        });
+
+        const candleSeries = chart.addCandlestickSeries();
+
+        let fakeData = [
+            { time: '2024-12-01', open: 1, high: 1.5, low: 1, close: 1.2 },
+        ];
+
+        candleSeries.setData(fakeData);
+
+        function fetchPriceAndUpdateChart() {
+            const newPrice = localStorage.getItem('currentPrice');
+            if (newPrice) {
+                const lastData = fakeData[fakeData.length - 1];
+                const nextTime = new Date(new Date(lastData.time).getTime() + 86400000).toISOString().split('T')[0];
+
+                const newCandle = {
+                    time: nextTime,
+                    open: lastData.close,
+                    high: Math.max(newPrice, lastData.close),
+                    low: Math.min(newPrice, lastData.close),
+                    close: parseFloat(newPrice),
+                };
+
+                fakeData.push(newCandle);
+                candleSeries.update(newCandle);
+            }
+        }
+
+        setInterval(fetchPriceAndUpdateChart, 5000); // هر 5 ثانیه قیمت را چک می‌کند
+    </script>
+</body>
+</html>
