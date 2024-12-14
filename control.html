@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f7fc;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #ffffff;
+        }
+        h1 {
+            text-align: center;
+            color: #007BFF;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .section h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        input, button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .action-btn {
+            background-color: #007BFF;
+            color: white;
+        }
+        .action-btn:hover {
+            background-color: #0056b3;
+        }
+        .price-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #e9f7df;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .price-info span {
+            font-weight: bold;
+            font-size: 20px;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Control Panel</h1>
+
+        <!-- نمایش قیمت فعلی -->
+        <div class="price-info">
+            <span>Current Token Price: <span id="current-price">$0.00</span></span>
+            <span>Change: <span id="price-change">0%</span></span>
+        </div>
+
+        <!-- تغییر دستی قیمت -->
+        <div class="section">
+            <h2>Set New Price</h2>
+            <label for="price">Enter New Price:</label>
+            <input type="number" id="price" placeholder="Enter new price (e.g., 1.5)">
+            <button class="action-btn" onclick="updatePrice()">Update Price</button>
+        </div>
+
+        <!-- تغییر درصدی قیمت -->
+        <div class="section">
+            <h2>Change Price by Percentage</h2>
+            <label for="percent">Enter Percentage:</label>
+            <input type="number" id="percent" placeholder="Enter percentage (e.g., 5)">
+            <button class="action-btn" onclick="changePriceByPercentage()">Apply Percentage</button>
+        </div>
+
+        <!-- تنظیم قیمت اوتوماتیک -->
+        <div class="section">
+            <h2>Auto Adjust Price</h2>
+            <label for="auto-amount">Amount to Adjust:</label>
+            <input type="number" id="auto-amount" placeholder="Enter amount (e.g., 0.1)">
+            <label for="interval">Adjust Interval:</label>
+            <select id="interval">
+                <option value="hour">Every Hour</option>
+                <option value="minute">Every Minute</option>
+                <option value="day">Every Day</option>
+            </select>
+            <button class="action-btn" onclick="setAutoAdjust()">Set Auto Adjustment</button>
+        </div>
+
+        <!-- تنظیم قیمت برای تاریخ خاص -->
+        <div class="section">
+            <h2>Schedule Price Adjustment</h2>
+            <label for="schedule-price">Price to Set:</label>
+            <input type="number" id="schedule-price" placeholder="Enter price (e.g., 10)">
+            <label for="schedule-date">Date:</label>
+            <input type="date" id="schedule-date">
+            <label for="schedule-time">Time:</label>
+            <input type="time" id="schedule-time">
+            <button class="action-btn" onclick="schedulePriceAdjustment()">Schedule Adjustment</button>
+        </div>
+
+        <p id="status" style="color: green; margin-top: 10px;"></p>
+    </div>
+
+    <script>
+        const binId = "675c8aebad19ca34f8daa962"; // جایگزین با Bin ID
+        const apiKey = "$2a$10$lWvaajk30.H4dyNjvBP68eqM7vkgvMP9O5YAvi7pTeKkIJrXfUwMK"; // جایگزین با API Key
+        let autoAdjustInterval = null;
+
+        // نمایش قیمت فعلی
+        async function fetchCurrentPrice() {
+            try {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                    headers: { 'X-Master-Key': apiKey },
+                });
+                const result = await response.json();
+                const data = result.record;
+                const lastData = data[data.length - 1];
+
+                const currentPrice = lastData.close;
+                const previousPrice = data[data.length - 2] ? data[data.length - 2].close : currentPrice;
+                const changePercent = ((currentPrice - previousPrice) / previousPrice) * 100;
+
+                document.getElementById('current-price').innerText = `$${currentPrice.toFixed(2)}`;
+                document.getElementById('price-change').innerText = `${changePercent.toFixed(2)}%`;
+            } catch (error) {
+                console.error("Failed to fetch current price:", error);
+            }
+        }
+
+        fetchCurrentPrice();
+
+        // تغییر دستی قیمت
+        async function updatePrice() {
+            const price = parseFloat(document.getElementById('price').value);
+            if (!price || isNaN(price)) {
+                document.getElementById('status').innerText = 'Please enter a valid price.';
+                return;
+            }
+            await saveNewPrice(price);
+        }
+
+        // تغییر قیمت با درصد
+        async function changePriceByPercentage() {
+            const percent = parseFloat(document.getElementById('percent').value);
+            if (!percent || isNaN(percent)) {
+                document.getElementById('status').innerText = 'Please enter a valid percentage.';
+                return;
+            }
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                headers: { 'X-Master-Key': apiKey },
+            });
+            const result = await response.json();
+            const data = result.record;
+            const lastPrice = data[data.length - 1].close;
+
+            const newPrice = lastPrice * (1 + percent / 100);
+            await saveNewPrice(newPrice);
+        }
+
+        // ذخیره قیمت جدید
+        async function saveNewPrice(price) {
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                headers: { 'X-Master-Key': apiKey },
+            });
+            const result = await response.json();
+            const data = result.record;
+
+            const lastData = data[data.length - 1];
+            const nextTime = new Date(new Date(lastData.time).getTime() + 86400000).toISOString().split('T')[0];
+
+            const newCandle = {
+                time: nextTime,
+                open: lastData.close,
+                high: Math.max(price, lastData.close),
+                low: Math.min(price, lastData.close),
+                close: price,
+            };
+
+            data.push(newCandle);
+
+            await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': apiKey,
+                },
+                body: JSON.stringify(data),
+            });
+
+            document.getElementById('status').innerText = `Price updated to $${price}`;
+            fetchCurrentPrice();
+        }
+
+        // تنظیم قیمت اوتوماتیک
+        function setAutoAdjust() {
+            const amount = parseFloat(document.getElementById('auto-amount').value);
+            const interval = document.getElementById('interval').value;
+
+            if (!amount || isNaN(amount)) {
+                document.getElementById('status').innerText = 'Please enter a valid amount.';
+                return;
+            }
+
+            if (autoAdjustInterval) clearInterval(autoAdjustInterval);
+
+            let intervalTime = 3600000; // پیش‌فرض یک ساعت
+            if (interval === 'minute') intervalTime = 60000;
+            if (interval === 'day') intervalTime = 86400000;
+
+            autoAdjustInterval = setInterval(async () => {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                    headers: { 'X-Master-Key': apiKey },
+                });
+                const result = await response.json();
+                const data = result.record;
+                const lastPrice = data[data.length - 1].close;
+
+                const newPrice = lastPrice + amount;
+                await saveNewPrice(newPrice);
+            }, intervalTime);
+
+            document.getElementById('status').innerText = 'Auto-adjust set successfully!';
+        }
+
+        // تنظیم قیمت برای تاریخ خاص
+        async function schedulePriceAdjustment() {
+            const price = parseFloat(document.getElementById('schedule-price').value);
+            const date = document.getElementById('schedule-date').value;
+            const time = document.getElementById('schedule-time').value;
+
+            if (!price || !date || !time) {
+                document.getElementById('status').innerText = 'Please fill all fields.';
+                return;
+            }
+
+            const scheduleTime = new Date(`${date}T${time}`);
+            const now = new Date();
+
+            const delay = scheduleTime - now;
+
+            if (delay <= 0) {
+                document.getElementById('status').innerText = 'Scheduled time must be in the future.';
+                return;
+            }
+
+            setTimeout(async () => {
+                await saveNewPrice(price);
+                document.getElementById('status').innerText = 'Scheduled adjustment applied!';
+            }, delay);
+
+            document.getElementById('status').innerText = 'Price adjustment scheduled successfully!';
+        }
+    </script>
+</body>
+</html>
