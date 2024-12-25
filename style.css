@@ -1,0 +1,59 @@
+@charset "utf-8";
+/* CSS Document */
+
+@font-face {
+	font-family: "amir";
+	src: url( "fontamir.ttf");
+}
+*{
+	font-family:amir;}
+body {
+    background-color: rgba(255, 255, 255, 0.822);
+    text-align: center;
+    margin: 35px;
+    background-repeat: no-repeat;
+  }
+  img {
+   border-radius: 50px;
+   -webkit-border-radius: 50px;
+   -moz-border-radius: 50px;
+   -ms-border-radius: 50px;
+   -o-border-radius: 50px;
+  }
+    input[type="number"]{
+    margin: 10px;
+    padding: 10px 14px;
+    width: 270px;
+    height: 27px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 255, 0.366);
+    border-color: rgba(0, 0, 255, 0.366);
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    -ms-border-radius: 10px;
+    -o-border-radius: 10px;
+  }
+  input[type="number"]:hover{
+    box-shadow: 3px 6px 9px black;
+    
+  
+  }
+  
+    input[type="submit"]{
+    margin: 10px;
+    padding: 10px 14px;
+    width: 150px;
+    height: 40px;
+    border-radius: 8px;
+    background: #03b4da;
+    border:0px;
+    color: aliceblue;
+    font-weight:bold;
+  }
+   input[type="submit"]:hover{
+    background-color: #0373da;
+    color:white;
+    box-shadow: 2px 4px 8px black;
+    
+  }
+  
